@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Kyaw Gyi Gaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-6">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-black text-orange-500 mb-8">Admin Dashboard</h1>
+        <div class="overflow-x-auto bg-gray-800 rounded-2xl shadow-2xl">
+            <table class="w-full text-left">
+                <thead class="bg-gray-700 text-orange-400 uppercase text-sm">
+                    <tr>
+                        <th class="p-5">Time</th>
+                        <th class="p-5">User ID (Zone)</th>
+                        <th class="p-5">Package</th>
+                        <th class="p-5">Price</th>
+                        <th class="p-5">Receipt</th>
+                        <th class="p-5">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="order-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD2E6cBhEhV4i0K5eLOHfLK0jyfukwOLA4",
+            authDomain: "kyawgyi-gaming-db-d0d11.firebaseapp.com",
+            projectId: "kyawgyi-gaming-db-d0d11",
+            storageBucket: "kyawgyi-gaming-db-d0d11.firebasestorage.app",
+            messagingSenderId: "36056745739",
+            appId: "1:36056745739:web:4144327a138b6101f9040e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const list = document.getElementById('order-list');
+            list.innerHTML = "";
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const row = `
+                    <tr class="border-b border-gray-700 hover:bg-gray-750 transition">
+                        <td class="p-5 text-xs text-gray-400">${data.createdAt?.toDate().toLocaleString() || 'Just now'}</td>
+                        <td class="p-5 font-bold text-white">${data.userId} (${data.zoneId})</td>
+                        <td class="p-5">${data.package}</td>
+                        <td class="p-5 text-orange-500 font-bold">${data.price}</td>
+                        <td class="p-5">
+                            <a href="${data.receiptUrl}" target="_blank" class="bg-blue-600 px-3 py-1 rounded text-xs">View Screenshot</a>
+                        </td>
+                        <td class="p-5">
+                            <button onclick="deleteOrder('${docSnap.id}')" class="bg-red-600 px-3 py-1 rounded text-xs">Done</button>
+                        </td>
+                    </tr>
+                `;
+                list.innerHTML += row;
+            });
+        });
+
+        window.deleteOrder = async (id) => {
+            if(confirm("အော်ဒါပြီးပြီလား? စာရင်းကနေ ဖျက်လိုက်မှာနော်။")) {
+                await deleteDoc(doc(db, "orders", id));
+            }
+        };
+    </script>
+</body>
+</html>
