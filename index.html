@@ -105,14 +105,61 @@
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        const firebaseConfig = {apiKey: "AIzaSyDpgTDg9L6IDP2AoQUPUKqC3t8AljWOKHY",
-  authDomain: "kyawgyigaming-77e44.firebaseapp.com",
-  projectId: "kyawgyigaming-77e44",
-  storageBucket: "kyawgyigaming-77e44.firebasestorage.app",
-  messagingSenderId: "529419078072",
-  appId: "1:529419078072:web:6ba3a935ec646b092d674d",
-  measurementId: "G-B0LG1WBBK5"
-        };
+       // ၁။ အစ်ကို့ရဲ့ Token နဲ့ ID ကို ဒီမှာ အရင်ပြင်ပါ
+const TELEGRAM_TOKEN = "8778438615:AAHDvLSx4WM3ixYG4f9hlEoRzoAJ_zHoTrE"; 
+const CHAT_ID = "6879319097"; // @userinfobot ဆီကရတဲ့ ID
+
+// ၂။ အော်ဒါတင်တဲ့ Function
+async function submitOrder() {
+    // Form ထဲက အချက်အလက်တွေကို ဆွဲယူခြင်း
+    const userId = document.getElementById('user-id').value;
+    const zoneId = document.getElementById('zone-id').value;
+    const pack = document.querySelector('.package.active')?.innerText || "Not Selected";
+    const price = document.getElementById('sum-id').innerText;
+    const receiptFile = document.getElementById('receipt-upload').files[0];
+
+    // အချက်အလက် မပြည့်စုံရင် တားမြစ်ခြင်း
+    if (!userId || !receiptFile) {
+        alert("ကျေးဇူးပြု၍ User ID နှင့် ငွေလွှဲပြေစာပုံ ထည့်ပေးပါဗျ။");
+        return;
+    }
+
+    // တက်လာမယ့် စာသားပုံစံ
+    const message = `
+🎮 *New Order Received!*
+------------------------
+👤 *User ID:* ${userId}
+🌍 *Zone ID:* ${zoneId}
+💎 *Package:* ${pack}
+💰 *Total:* ${price}
+------------------------
+`;
+
+    // Telegram API ဆီ ပုံနဲ့စာသား ပို့ဖို့ ပြင်ဆင်ခြင်း
+    const formData = new FormData();
+    formData.append('chat_id', CHAT_ID);
+    formData.append('photo', receiptFile);
+    formData.append('caption', message);
+    formData.append('parse_mode', 'Markdown');
+
+    try {
+        // Telegram Bot ဆီ လှမ်းပို့တာပါ
+        const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            alert("အော်ဒါတင်ခြင်း အောင်မြင်ပါသည်။ Telegram တွင် စစ်ဆေးပေးပါဗျ။");
+            location.reload(); // အောင်မြင်ရင် Page ကို Refresh လုပ်မယ်
+        } else {
+            alert("ပို့ဆောင်မှု မအောင်မြင်ပါ။ Token သို့မဟုတ် Chat ID မှားနေနိုင်ပါသည်။");
+        }
+    } catch (error) {
+        console.error(error);
+        alert("အင်တာနက် အခက်အခဲကြောင့် အော်ဒါမတင်နိုင်ပါ။");
+    }
+}
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
